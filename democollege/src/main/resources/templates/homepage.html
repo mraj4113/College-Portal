@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CampusPortal - Explore Colleges & Courses</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-slate-50 text-slate-800 flex flex-col min-h-screen">
+
+    <!-- Navigation Bar -->
+    <nav class="bg-indigo-700 text-white sticky top-0 z-50 shadow-md">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex items-center space-x-3">
+                    <i class="fa-solid fa-graduation-cap text-2xl text-yellow-400"></i>
+                    <a href="/forum/home" class="font-bold text-xl tracking-tight">Campus<span class="text-yellow-400">Portal</span></a>
+                </div>
+                <div class="hidden md:flex items-center space-x-6 font-medium">
+                    <a href="/forum/home" class="text-white border-b-2 border-yellow-400 pb-1">Colleges</a>
+                    <a href="/forum/predictor" class="hover:text-yellow-300 transition flex items-center gap-1.5"><i class="fa-solid fa-wand-magic-sparkles text-amber-400"></i> Predictor</a>
+                    <a href="/forum/discussions/general" class="hover:text-indigo-200 transition">Community Forum</a>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <span th:if="${userId != null}" class="text-sm bg-indigo-800 px-3 py-1.5 rounded-full border border-indigo-500">
+                        <i class="fa-solid fa-user-check text-green-400 mr-1"></i> Logged In
+                    </span>
+                    <a th:if="${userId != null}" href="/forum/logout" class="bg-rose-500 hover:bg-rose-600 text-white text-sm px-4 py-2 rounded-lg font-semibold transition">Logout</a>
+                    <a th:if="${userId == null}" href="/forum/login" class="bg-yellow-400 hover:bg-yellow-300 text-slate-900 text-sm px-4 py-2 rounded-lg font-semibold transition">Login / Signup</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Search Bar -->
+    <header class="bg-gradient-to-r from-indigo-700 to-indigo-900 text-white py-10 px-4">
+        <div class="max-w-4xl mx-auto text-center space-y-4">
+            <h1 class="text-3xl sm:text-4xl font-extrabold">Find Your Dream College</h1>
+            <p class="text-indigo-200 text-sm sm:text-base">Search through hundreds of colleges, cutoffs, fee structures, and placement records.</p>
+            
+            <form method="GET" action="/forum/home" class="max-w-2xl mx-auto mt-6">
+                <div class="relative flex items-center">
+                    <i class="fa-solid fa-magnifying-glass absolute left-4 text-slate-400"></i>
+                    <input type="text" name="name" th:value="${searchedName}" placeholder="Search college by name (e.g. NIT Patna, IIT Bombay)..." 
+                           class="w-full pl-11 pr-32 py-3.5 rounded-2xl bg-white text-slate-800 placeholder-slate-400 shadow-lg focus:outline-none focus:ring-4 focus:ring-yellow-400 text-sm">
+                    <button type="submit" class="absolute right-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold px-5 py-2 rounded-xl transition">
+                        Search
+                    </button>
+                </div>
+            </form>
+        </div>
+    </header>
+
+    <!-- Main Content Layout -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1 w-full">
+        <div class="flex flex-col lg:flex-row gap-8">
+
+            <!-- Sidebar Filters -->
+            <aside class="w-full lg:w-1/4">
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 sticky top-24">
+                    <div class="flex items-center justify-between pb-4 border-b border-slate-100">
+                        <h2 class="text-lg font-bold text-slate-800"><i class="fa-solid fa-filter text-indigo-600 mr-2"></i>Filter Colleges</h2>
+                        <a href="/forum/home" class="text-xs text-indigo-600 hover:underline font-semibold">Reset All</a>
+                    </div>
+
+                    <form method="GET" action="/forum/home" class="space-y-4 mt-4 text-sm">
+                        <!-- Keep searched name in query -->
+                        <input type="hidden" name="name" th:value="${searchedName}">
+
+                        <!-- City -->
+                        <div>
+                            <label class="block font-medium text-slate-700 mb-1">City</label>
+                            <input type="text" name="city" th:value="${param.city}" placeholder="e.g. Patna, Delhi" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none">
+                        </div>
+
+                        <!-- Course Name -->
+                        <div>
+                            <label class="block font-medium text-slate-700 mb-1">Course Name</label>
+                            <input type="text" name="coursename" th:value="${param.coursename}" placeholder="e.g. Computer Science, B.Tech" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none">
+                        </div>
+
+                        <!-- Minimum Ratings -->
+                        <div>
+                            <label class="block font-medium text-slate-700 mb-1">Min Rating</label>
+                            <select name="minratings" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none">
+                                <option value="">Any Rating</option>
+                                <option value="5" th:selected="${param.minratings == '5'}">5 Stars</option>
+                                <option value="4" th:selected="${param.minratings == '4'}">4+ Stars</option>
+                                <option value="3" th:selected="${param.minratings == '3'}">3+ Stars</option>
+                            </select>
+                        </div>
+
+                        <!-- Min Placement % -->
+                        <div>
+                            <label class="block font-medium text-slate-700 mb-1">Min Placement (%)</label>
+                            <input type="number" step="0.1" name="minplacements" th:value="${param.minplacements}" placeholder="e.g. 85" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none">
+                        </div>
+
+                        <!-- Max Course Fees -->
+                        <div>
+                            <label class="block font-medium text-slate-700 mb-1">Max Course Fees (₹)</label>
+                            <input type="number" name="maxcoursefees" th:value="${param.maxcoursefees}" placeholder="e.g. 200000" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none">
+                        </div>
+
+                        <!-- Max Hostel Fees -->
+                        <div>
+                            <label class="block font-medium text-slate-700 mb-1">Max Hostel Fees (₹)</label>
+                            <input type="number" name="maxHostelFees" th:value="${param.maxHostelFees}" placeholder="e.g. 50000" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none">
+                        </div>
+
+                        <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2.5 rounded-lg shadow-sm transition mt-2">
+                            Apply Filters
+                        </button>
+                    </form>
+                </div>
+            </aside>
+
+            <!-- College Listings -->
+            <section class="w-full lg:w-3/4">
+                <div class="flex items-center justify-between mb-6">
+                    <h2 class="text-2xl font-bold text-slate-900">
+                        <span th:if="${searchedName != null}" th:text="'Results for &quot;' + ${searchedName} + '&quot;'">Colleges</span>
+                        <span th:if="${searchedName == null}">Explore Colleges</span>
+                    </h2>
+                    <span class="text-sm text-slate-500" th:text="${colleges != null ? colleges.size() + ' Results' : '0 Results'}"></span>
+                </div>
+
+                <!-- Empty State -->
+                <div th:if="${colleges == null or #lists.isEmpty(colleges)}" class="bg-white p-12 text-center rounded-2xl border border-slate-200 shadow-sm">
+                    <i class="fa-solid fa-building-columns text-5xl text-slate-300 mb-4"></i>
+                    <h3 class="text-lg font-semibold text-slate-700">No colleges found</h3>
+                    <p class="text-slate-500 text-sm mt-1">Try tweaking your search parameters or clearing filters.</p>
+                </div>
+
+                <!-- College Cards Grid -->
+                <div class="space-y-5" th:if="${colleges != null and !#lists.isEmpty(colleges)}">
+                    <div th:each="college : ${colleges}" class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition">
+                        <div class="flex flex-col md:flex-row md:items-start justify-between gap-4">
+                            <div>
+                                <div class="flex items-center gap-3">
+                                    <h3 class="text-xl font-bold text-slate-900" th:text="${college.name}">College Name</h3>
+                                    <span class="bg-amber-100 text-amber-800 text-xs px-2.5 py-1 rounded-full font-semibold flex items-center gap-1">
+                                        <i class="fa-solid fa-star text-amber-500"></i> <span th:text="${college.ratings}">4</span>.0
+                                    </span>
+                                </div>
+                                <p class="text-sm text-slate-500 mt-1 flex items-center gap-2">
+                                    <i class="fa-solid fa-location-dot text-rose-500"></i>
+                                    <span th:text="${college.location != null ? (college.location.city + ', ' + college.location.state) : 'Location N/A'}">Patna, Bihar</span>
+                                </p>
+                            </div>
+                            <div>
+                                <a th:href="@{/forum/colleges/{id}/discussions(id=${college.id})}" class="text-xs bg-indigo-50 text-indigo-700 hover:bg-indigo-100 border border-indigo-200 font-semibold px-3 py-2 rounded-lg transition flex items-center gap-1.5">
+                                    <i class="fa-solid fa-comments"></i> Campus Forum
+                                </a>
+                            </div>
+                        </div>
+
+                        <!-- Stats -->
+                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-5 pt-4 border-t border-slate-100 text-sm">
+                            <div>
+                                <span class="text-slate-400 text-xs block">Placement Rate</span>
+                                <span class="font-bold text-emerald-600" th:text="${college.placements != null ? college.placements + '%' : 'N/A'}">95%</span>
+                            </div>
+                            <div>
+                                <span class="text-slate-400 text-xs block">Hostel Fees</span>
+                                <span class="font-bold text-slate-700" th:text="${college.hostelfees != null ? '₹' + college.hostelfees + '/yr' : 'N/A'}">₹45,000</span>
+                            </div>
+                            <div>
+                                <span class="text-slate-400 text-xs block">Cutoff Rank</span>
+                                <span class="font-bold text-slate-700" th:text="${college.cutoffRank != null ? college.cutoffRank : 'N/A'}">3500</span>
+                            </div>
+                            <div>
+                                <span class="text-slate-400 text-xs block">Exams Accepted</span>
+                                <span class="font-bold text-indigo-600">
+                                    <span th:if="${college.jee}">JEE </span>
+                                    <span th:if="${college.neet}">NEET</span>
+                                    <span th:if="${!college.jee and !college.neet}">Merit</span>
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- Courses -->
+                        <div th:if="${college.course != null and !college.course.isEmpty()}" class="mt-4 flex flex-wrap gap-2">
+                            <span th:each="crs : ${college.course}" class="text-xs bg-slate-100 text-slate-700 px-2.5 py-1 rounded-md">
+                                <i class="fa-solid fa-book-open text-slate-400 mr-1"></i>
+                                <span th:text="${crs.courseName}">B.Tech</span> (₹<span th:text="${crs.fees}">1.5L</span>)
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Pagination -->
+                <div th:if="${totalPages > 1}" class="flex justify-center items-center gap-2 mt-8">
+                    <a th:if="${currentPage > 0}" th:href="@{/forum/home(page=${currentPage - 1}, name=${searchedName})}" class="px-3 py-1.5 bg-white border border-slate-300 rounded-lg text-sm hover:bg-slate-50">&laquo; Prev</a>
+                    <span class="text-sm font-semibold text-slate-600">Page <span th:text="${currentPage + 1}">1</span> of <span th:text="${totalPages}">5</span></span>
+                    <a th:if="${currentPage + 1 < totalPages}" th:href="@{/forum/home(page=${currentPage + 1}, name=${searchedName})}" class="px-3 py-1.5 bg-white border border-slate-300 rounded-lg text-sm hover:bg-slate-50">Next &raquo;</a>
+                </div>
+            </section>
+        </div>
+    </main>
+</body>
+</html>

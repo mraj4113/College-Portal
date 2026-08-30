@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${feedTitle}">Forum - Student Discussions</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-slate-50 text-slate-800 flex flex-col min-h-screen">
+
+    <!-- Navigation -->
+    <nav class="bg-indigo-700 text-white sticky top-0 z-50 shadow-md">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <i class="fa-solid fa-graduation-cap text-2xl text-yellow-400"></i>
+                <a href="/forum/home" class="font-bold text-xl">Campus<span class="text-yellow-400">Portal</span></a>
+            </div>
+            <div class="flex items-center space-x-6">
+                <a href="/forum/home" class="hover:text-indigo-200">Colleges</a>
+                <a href="/forum/discussions/general" class="text-white border-b-2 border-yellow-400 pb-1">Community Forum</a>
+                <a th:if="${userId == null}" href="/forum/login" class="bg-yellow-400 text-slate-900 text-sm px-4 py-1.5 rounded-lg font-semibold">Login</a>
+                <a th:if="${userId != null}" href="/forum/logout" class="bg-rose-500 text-white text-sm px-3 py-1.5 rounded-lg font-semibold">Logout</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Header Banner -->
+    <header class="bg-white border-b border-slate-200 py-8">
+        <div class="max-w-4xl mx-auto px-4">
+            <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                <div>
+                    <span th:if="${isCollegeSpecific}" class="text-xs uppercase tracking-wider font-bold text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-md">Campus Specific Discussion</span>
+                    <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-1" th:text="${feedTitle}">Student Community Forum</h1>
+                    <p class="text-slate-500 text-sm mt-1">Ask questions, share experiences, and get advice from alumni and students.</p>
+                </div>
+                <button onclick="document.getElementById('postModal').classList.remove('hidden')" class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-5 py-2.5 rounded-xl shadow transition flex items-center gap-2">
+                    <i class="fa-solid fa-pen-to-square"></i> Ask Question
+                </button>
+            </div>
+
+            <!-- Search Form -->
+            <form method="GET" action="/forum/discussions/general" class="mt-6">
+                <div class="relative">
+                    <i class="fa-solid fa-magnifying-glass absolute left-4 top-3.5 text-slate-400"></i>
+                    <input type="text" name="query" th:value="${searchQuery}" placeholder="Search discussions by topic or keyword..." class="w-full pl-11 pr-24 py-3 bg-slate-50 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:bg-white outline-none">
+                    <button type="submit" class="absolute right-2 top-2 bg-indigo-600 text-white px-4 py-1.5 rounded-lg text-sm font-medium">Search</button>
+                </div>
+            </form>
+        </div>
+    </header>
+
+    <!-- Discussion Feed -->
+    <main class="max-w-4xl mx-auto px-4 py-8 flex-1 w-full space-y-4">
+        <!-- Empty State -->
+        <div th:if="${discussions == null or #lists.isEmpty(discussions)}" class="bg-white p-12 text-center rounded-2xl border border-slate-200">
+            <i class="fa-regular fa-comments text-5xl text-slate-300 mb-3"></i>
+            <h3 class="text-lg font-semibold text-slate-700">No discussions yet</h3>
+            <p class="text-slate-500 text-sm mt-1">Be the first to start a conversation in this topic!</p>
+        </div>
+
+        <!-- Discussion Card -->
+        <div th:each="disc : ${discussions}" class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm hover:border-indigo-200 transition">
+            <div class="flex items-center justify-between text-xs text-slate-400 mb-2">
+                <span class="flex items-center gap-1.5 font-medium text-slate-600">
+                    <i class="fa-solid fa-circle-user text-indigo-500 text-sm"></i>
+                    <span th:text="${disc.authorName != null ? disc.authorName : 'Anonymous'}">Author</span>
+                </span>
+                <span th:if="${disc.collegeName != null}" class="bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded font-medium" th:text="${disc.collegeName}">NIT Patna</span>
+            </div>
+
+            <!-- Title link uses dynamic id -->
+            <a th:href="@{'/forum/discussion/' + ${disc.id} + '/post'}" class="text-lg font-bold text-slate-900 hover:text-indigo-600 transition block">
+                <span th:text="${disc.title}">Discussion Title</span>
+            </a>
+            
+            <p class="text-slate-600 text-sm mt-2 line-clamp-2" th:text="${disc.content}">Discussion snippet...</p>
+
+            <div class="mt-4 pt-4 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
+                <span th:text="${#temporals.format(disc.createdTime, 'dd MMM yyyy, hh:mm a')}">10 Oct 2024</span>
+                <a th:href="@{'/forum/discussion/' + ${disc.id} + '/post'}" class="font-semibold text-indigo-600 hover:underline flex items-center gap-1">
+                    <i class="fa-regular fa-comment-dots"></i>
+                    View Answers
+                </a>
+            </div>
+        </div>
+    </main>
+
+    <!-- Create Discussion Modal -->
+    <div id="postModal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+        <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-xl relative">
+            <button onclick="document.getElementById('postModal').classList.add('hidden')" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+            <h2 class="text-xl font-bold text-slate-800 mb-4">Start a Discussion</h2>
+
+            <div th:if="${userId == null}" class="bg-amber-50 text-amber-800 p-4 rounded-xl text-sm mb-4">
+                You must <a href="/forum/login" class="underline font-bold">Log in</a> to create a discussion.
+            </div>
+
+            <form th:if="${userId != null}" method="POST" action="/forum/discussion/create" class="space-y-4">
+                <input type="hidden" name="collegeId" th:value="${collegeId}">
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Title</label>
+                    <input type="text" name="title" required placeholder="What is your question or topic?" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Content / Details</label>
+                    <textarea name="content" rows="4" required placeholder="Provide more context so others can help..." class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"></textarea>
+                </div>
+                <div class="flex justify-end gap-2 pt-2">
+                    <button type="button" onclick="document.getElementById('postModal').classList.add('hidden')" class="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-lg text-sm">Cancel</button>
+                    <button type="submit" class="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-medium text-sm">Post Discussion</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</body>
+</html>

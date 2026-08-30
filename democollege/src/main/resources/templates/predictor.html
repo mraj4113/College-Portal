@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>College Predictor - CampusPortal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-slate-50 text-slate-800 flex flex-col min-h-screen">
+
+    <!-- Navigation -->
+    <nav class="bg-indigo-700 text-white sticky top-0 z-50 shadow-md">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <i class="fa-solid fa-graduation-cap text-2xl text-yellow-400"></i>
+                <a href="/forum/home" class="font-bold text-xl">Campus<span class="text-yellow-400">Portal</span></a>
+            </div>
+            <div class="flex items-center space-x-6 font-medium">
+                <a href="/forum/home" class="hover:text-indigo-200">Colleges</a>
+                <a href="/forum/predictor" class="text-white border-b-2 border-yellow-400 pb-1 flex items-center gap-1.5">
+                    <i class="fa-solid fa-wand-magic-sparkles text-yellow-400"></i> Predictor
+                </a>
+                <a href="/forum/discussions/general" class="hover:text-indigo-200">Community Forum</a>
+            </div>
+            <div class="flex items-center space-x-4">
+                <a th:if="${userId == null}" href="/forum/login" class="bg-yellow-400 text-slate-900 text-sm px-4 py-1.5 rounded-lg font-semibold">Login</a>
+                <a th:if="${userId != null}" href="/forum/logout" class="bg-rose-500 text-white text-sm px-3 py-1.5 rounded-lg font-semibold">Logout</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Predictor Hero & Form -->
+    <header class="bg-indigo-900 text-white py-10 px-4">
+        <div class="max-w-3xl mx-auto text-center space-y-3">
+            <span class="text-xs uppercase tracking-wider font-bold bg-indigo-800 px-3 py-1 rounded-full text-yellow-300 border border-indigo-600">
+                <i class="fa-solid fa-bolt mr-1"></i> AI & Rank Based Recommendation
+            </span>
+            <h1 class="text-3xl sm:text-4xl font-extrabold">College Predictor</h1>
+            <p class="text-indigo-200 text-sm sm:text-base">Enter your exam rank and qualifying tests to see which colleges you can get into.</p>
+        </div>
+
+        <div class="max-w-2xl mx-auto bg-white text-slate-800 p-6 sm:p-8 rounded-2xl shadow-xl mt-8">
+            <form method="GET" action="/forum/predictor" class="space-y-5">
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-1">Your All India Rank (AIR)</label>
+                    <input type="number" name="rank" th:value="${rank}" required placeholder="e.g. 4500" class="w-full px-4 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none text-slate-800 text-base">
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-2">Exams Cleared</label>
+                        <div class="flex items-center gap-6">
+                            <label class="flex items-center gap-2 text-sm font-medium cursor-pointer">
+                                <input type="checkbox" name="exams" value="jee" th:checked="${exams != null and exams.contains('jee')}" class="w-4 h-4 text-indigo-600 rounded">
+                                <span>JEE</span>
+                            </label>
+                            <label class="flex items-center gap-2 text-sm font-medium cursor-pointer">
+                                <input type="checkbox" name="exams" value="neet" th:checked="${exams != null and exams.contains('neet')}" class="w-4 h-4 text-indigo-600 rounded">
+                                <span>NEET</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-1">Cutoff Tolerance (+/- Rank Range)</label>
+                        <select name="diff" class="w-full px-3 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none text-sm">
+                            <option value="1000" th:selected="${diff == 1000}">± 1,000 Ranks (Strict)</option>
+                            <option value="2000" th:selected="${diff == 2000}">± 2,000 Ranks (Moderate)</option>
+                            <option value="5000" th:selected="${diff == 5000}">± 5,000 Ranks (Broad)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded-xl shadow-md transition flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-calculator"></i> Predict Eligible Colleges
+                </button>
+            </form>
+        </div>
+    </header>
+
+    <!-- Prediction Results -->
+    <main class="max-w-4xl mx-auto px-4 py-8 flex-1 w-full">
+        <div th:if="${predictedColleges != null}">
+            <div class="flex items-center justify-between mb-6 pb-2 border-b border-slate-200">
+                <h2 class="text-xl font-bold text-slate-800">
+                    Predicted Colleges for Rank <span class="text-indigo-600" th:text="${rank}">4500</span>
+                </h2>
+                <span class="text-sm font-semibold text-slate-500" th:text="${predictedColleges.size()} + ' colleges match'"></span>
+            </div>
+
+            <!-- Empty Results -->
+            <div th:if="${#lists.isEmpty(predictedColleges)}" class="bg-white p-12 text-center rounded-2xl border border-slate-200 shadow-sm">
+                <i class="fa-solid fa-triangle-exclamation text-4xl text-amber-500 mb-3"></i>
+                <h3 class="text-base font-semibold text-slate-800">No matching colleges found for this rank range</h3>
+                <p class="text-slate-500 text-xs mt-1">Try increasing the tolerance rank range or selecting more exams.</p>
+            </div>
+
+            <!-- Predicted Cards Grid -->
+            <div class="space-y-4" th:if="${!#lists.isEmpty(predictedColleges)}">
+                <div th:each="college : ${predictedColleges}" class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm hover:border-indigo-300 transition">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                        <div>
+                            <h3 class="text-lg font-bold text-slate-900" th:text="${college.name}">College Name</h3>
+                            <p class="text-xs text-slate-500 mt-0.5 flex items-center gap-1.5">
+                                <i class="fa-solid fa-location-dot text-rose-500"></i>
+                                <span th:text="${college.location != null ? (college.location.city + ', ' + college.location.state) : 'Location N/A'}">Patna, Bihar</span>
+                            </p>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="bg-emerald-50 text-emerald-700 text-xs px-3 py-1 rounded-full font-bold border border-emerald-200">
+                                Cutoff ~ <span th:text="${college.cutoffRank}">4000</span>
+                            </span>
+                            <a th:href="@{/forum/colleges/{id}/discussions(id=${college.id})}" class="bg-indigo-50 text-indigo-700 hover:bg-indigo-100 text-xs font-semibold px-3 py-1.5 rounded-lg border border-indigo-200 transition">
+                                Discuss
+                            </a>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-3 gap-2 mt-4 pt-3 border-t border-slate-100 text-xs">
+                        <div>
+                            <span class="text-slate-400 block">Rating</span>
+                            <span class="font-bold text-slate-700" th:text="${college.ratings} + ' / 5'">5/5</span>
+                        </div>
+                        <div>
+                            <span class="text-slate-400 block">Placements</span>
+                            <span class="font-bold text-emerald-600" th:text="${college.placements != null ? college.placements + '%' : 'N/A'}">92%</span>
+                        </div>
+                        <div>
+                            <span class="text-slate-400 block">Hostel Fees</span>
+                            <span class="font-bold text-slate-700" th:text="${college.hostelfees != null ? '₹' + college.hostelfees + '/yr' : 'N/A'}">₹50,000</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</body>
+</html>

@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${discussion.title}">Discussion Thread</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col">
+
+    <!-- Navigation -->
+    <nav class="bg-indigo-700 text-white sticky top-0 z-50 shadow">
+        <div class="max-w-4xl mx-auto px-4 h-16 flex items-center justify-between">
+            <a href="/forum/discussions/general" class="font-medium text-sm flex items-center gap-2 hover:text-yellow-300">
+                <i class="fa-solid fa-arrow-left"></i> Back to Forum
+            </a>
+            <div class="flex items-center space-x-4">
+                <a href="/forum/home" class="hover:text-indigo-200 text-sm">Colleges</a>
+                <a th:if="${userId == null}" href="/forum/login" class="bg-yellow-400 text-slate-900 text-xs px-3 py-1.5 rounded-lg font-semibold">Login</a>
+                <a th:if="${userId != null}" href="/forum/logout" class="bg-rose-500 text-white text-xs px-3 py-1.5 rounded-lg font-semibold">Logout</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Thread -->
+    <main class="max-w-4xl mx-auto px-4 py-8 flex-1 w-full space-y-6">
+        <!-- Main Post -->
+        <article class="bg-white p-8 rounded-2xl border border-slate-200 shadow-sm">
+            <div class="flex items-center gap-2 text-xs text-indigo-600 font-semibold mb-3">
+                <span th:if="${discussion.collegeName != null}" class="bg-indigo-50 px-2.5 py-1 rounded" th:text="${discussion.collegeName}">Campus</span>
+                <span class="text-slate-400" th:text="${#temporals.format(discussion.createdTime, 'dd MMM yyyy, hh:mm a')}">Date</span>
+            </div>
+            <h1 class="text-2xl font-bold text-slate-900" th:text="${discussion.title}">Discussion Title</h1>
+            <div class="flex items-center gap-2 text-sm text-slate-500 mt-2 pb-4 border-b border-slate-100">
+                <i class="fa-solid fa-circle-user text-indigo-500"></i>
+                <span>Posted by <b class="text-slate-700" th:text="${discussion.authorName}">Author Name</b></span>
+            </div>
+            <div class="prose max-w-none text-slate-700 mt-4 leading-relaxed whitespace-pre-line" th:text="${discussion.content}">
+                Content text...
+            </div>
+        </article>
+
+        <!-- Answers Section -->
+        <section class="space-y-4">
+            <h2 class="text-lg font-bold text-slate-900 flex items-center gap-2">
+                <i class="fa-solid fa-reply text-indigo-600"></i> Answers
+                <span class="text-xs bg-slate-200 text-slate-700 px-2 py-0.5 rounded-full" th:text="${discussion.answer != null ? discussion.answer.size() : 0}">0</span>
+            </h2>
+
+            <div th:if="${discussion.answer == null or discussion.answer.isEmpty()}" class="bg-white p-6 text-center rounded-xl border border-slate-200 text-slate-500 text-sm">
+                No answers yet. Share your knowledge by posting an answer below!
+            </div>
+
+            <!-- Answer Card -->
+            <div th:each="ans : ${discussion.answer}" class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-2">
+                <div class="flex items-center justify-between text-xs text-slate-500">
+                    <span class="font-semibold text-slate-800 flex items-center gap-1.5">
+                        <i class="fa-solid fa-user-pen text-slate-400"></i>
+                        <span th:text="${ans.responderName}">User</span>
+                    </span>
+                </div>
+                <p class="text-slate-700 text-sm leading-relaxed whitespace-pre-line" th:text="${ans.answer}">Answer text</p>
+            </div>
+        </section>
+
+        <!-- Post Answer Box -->
+        <section class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+            <h3 class="text-base font-bold text-slate-900 mb-3">Your Answer</h3>
+            
+            <div th:if="${userId == null}" class="bg-amber-50 text-amber-800 p-4 rounded-xl text-sm">
+                Please <a href="/forum/login" class="font-bold underline">log in</a> to post an answer.
+            </div>
+
+            <form th:if="${userId != null}" method="POST" th:action="@{'/forum/discussion/' + ${discussion.id} + '/post/answer'}">
+                <textarea name="answer" rows="4" required placeholder="Write your helpful answer or response..." class="w-full p-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none text-sm"></textarea>
+                <div class="flex justify-end mt-3">
+                    <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-6 py-2 rounded-xl text-sm transition">
+                        Submit Answer
+                    </button>
+                </div>
+            </form>
+        </section>
+    </main>
+</body>
+</html>
