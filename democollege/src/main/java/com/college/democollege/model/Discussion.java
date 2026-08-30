@@ -25,7 +25,7 @@ public class Discussion {
     @JoinColumn(name = "user_id",nullable = false)
     private User author;
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "college_id", columnDefinition = "BIGINT UNSIGNED")
+    @JoinColumn(name = "college_id")
     private College college;
     @Column(nullable = false)
     private String title;
